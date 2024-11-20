@@ -1,3 +1,12 @@
+
+    <asp:BoundField DataField="Unpaid_ArearWages" HeaderText="Unpaid Arear Wages [f]" 
+                                                SortExpression="Unpaid_ArearWages" HeaderStyle-HorizontalAlign="Left" 
+                                                ItemStyle-HorizontalAlign="Left">
+                                            <HeaderStyle HorizontalAlign="Left" />
+                                            <ItemStyle HorizontalAlign="Left" />
+                         </asp:BoundField>
+
+
 # sss
 select Distinct H1.AadharNo 
 (select  * from App_AttendanceDetails where  VendorCode='28258' and datepart(month,dates)='10' and datepart(year,dates)='2024' and AadharNo='H1.AadharNo'
