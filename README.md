@@ -1,4 +1,17 @@
 
+<asp:TemplateField HeaderText="Unpaid Arear Wages">
+    <HeaderTemplate>
+        Unpaid Arear Wages <span style="color: red;">[f]</span>
+    </HeaderTemplate>
+    <ItemTemplate>
+        <%# Eval("Unpaid_ArearWages") %>
+    </ItemTemplate>
+    <HeaderStyle HorizontalAlign="Left" />
+    <ItemStyle HorizontalAlign="Left" />
+</asp:TemplateField>
+
+
+
     <asp:BoundField DataField="Unpaid_ArearWages" HeaderText="Unpaid Arear Wages [f]" 
                                                 SortExpression="Unpaid_ArearWages" HeaderStyle-HorizontalAlign="Left" 
                                                 ItemStyle-HorizontalAlign="Left">
