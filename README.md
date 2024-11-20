@@ -1,4 +1,9 @@
 # sss
+select Distinct H1.AadharNo 
+(select  * from App_AttendanceDetails where  VendorCode='28258' and datepart(month,dates)='10' and datepart(year,dates)='2024' and AadharNo='H1.AadharNo'
+)
+from App_AttendanceDetails H1 where  H1.VendorCode='28258' and datepart(month,dates)='10' and datepart(year,dates)='2024'
+
 
  Select AttDtl.VendorCode, EmpMst.v_name,  DATEPART(month, AttDtl.Dates) as Month, DATEPART(year, AttDtl.Dates) as Year, AttDtl.WorkOrderNo,  
  AttDtl.WorkManSl as WorkManSLNo, AttDtl.WorkManName WorkManName, AttDtl.Dates,  AttDtl.WorkManCategory as Category,
