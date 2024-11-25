@@ -1,1 +1,23 @@
-  date1 = ((TextBox)EmployeeMasterFormID_Record.Rows[0].FindControl("ToDate")).Text.Substring(3, 2) + "/" + ((TextBox)EmployeeMasterFormID_Record.Rows[0].FindControl("ToDate")).Text.Substring(0, 2) + "/" + ((TextBox)EmployeeMasterFormID_Record.Rows[0].FindControl("ToDate")).Text.Substring(6, 4);
+select 
+ID,
+UPDATEDBY,
+UPDATEDAT,
+EMP_TYPE,
+RATE,
+FROM_DATE,
+TO_DATE,
+REMARKS,
+STATE_NAME,
+COVERAGE_AREA,
+
+LOCATION
+from EMP_RATES
+where 
+
+
+
+select * from COVERAGE_AREA
+
+select * from STATE_NAME
+
+select * from EMP_CATEGORY
