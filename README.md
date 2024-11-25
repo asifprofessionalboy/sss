@@ -1,10 +1,1 @@
-<asp:TemplateField HeaderText="Unpaid Arear Wages">
-    <HeaderTemplate>
-        Unpaid Arear Wages <span style="color: red;">[f]</span>
-    </HeaderTemplate>
-    <ItemTemplate>
-        <%# Eval("Unpaid_ArearWages") %>
-    </ItemTemplate>
-    <HeaderStyle HorizontalAlign="Left" />
-    <ItemStyle HorizontalAlign="Left" />
-</asp:TemplateField>
+  date1 = ((TextBox)EmployeeMasterFormID_Record.Rows[0].FindControl("ToDate")).Text.Substring(3, 2) + "/" + ((TextBox)EmployeeMasterFormID_Record.Rows[0].FindControl("ToDate")).Text.Substring(0, 2) + "/" + ((TextBox)EmployeeMasterFormID_Record.Rows[0].FindControl("ToDate")).Text.Substring(6, 4);
