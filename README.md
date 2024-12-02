@@ -1,118 +1,106 @@
+-- Step 1: Calculate total holidays per workman
+WITH HolidayCount AS (
+    SELECT 
+        AttDtl.AadharNo,
+        COUNT(DISTINCT ah.Hdate) AS TotalHolidays
+    FROM 
+        App_HolidayMaster ah
+    INNER JOIN 
+        App_AttendanceDetails AttDtl 
+        ON ah.Location = 'TSBSL ANGUL (TOWNSHIP)' 
+        AND DATEPART(month, ah.Hdate) = 10 
+        AND DATEPART(year, ah.Hdate) = 2024
+    GROUP BY 
+        AttDtl.AadharNo
+),
+
+-- Step 2: Assign row numbers to work orders for each workman
+WorkOrderAssignment AS (
+    SELECT 
+        AttDtl.AadharNo,
+        AttDtl.WorkOrderNo,
+        ROW_NUMBER() OVER (PARTITION BY AttDtl.AadharNo ORDER BY AttDtl.WorkOrderNo) AS RowNum
+    FROM 
+        App_AttendanceDetails AttDtl
+    WHERE 
+        MONTH(AttDtl.Dates) = 10 
+        AND YEAR(AttDtl.Dates) = 2024
+),
+
+-- Step 3: Assign holiday counts only to the first work order
+FinalHolidayCount AS (
+    SELECT 
+        AttDtl.AadharNo,
+        AttDtl.WorkOrderNo,
+        CASE 
+            WHEN WA.RowNum = 1 THEN HC.TotalHolidays 
+            ELSE 0 
+        END AS HolidayCount
+    FROM 
+        App_AttendanceDetails AttDtl
+    LEFT JOIN 
+        WorkOrderAssignment WA 
+        ON AttDtl.AadharNo = WA.AadharNo 
+        AND AttDtl.WorkOrderNo = WA.WorkOrderNo
+    LEFT JOIN 
+        HolidayCount HC 
+        ON AttDtl.AadharNo = HC.AadharNo
+)
+
+-- Step 4: Final query
 SELECT 
-    EM.EMP_PF_EXEMPTED AS EMP_PF_EXEMPTED,
-    EM.EMP_ESI_EXEMPTED AS EMP_ESI_EXEMPTED,
-    AttDtl.MasterID AS MasterID,
-    SUM(AttDtl.OT_hrs) AS OT_hrs,
-    YEAR(AttDtl.Dates) AS YearWage,
-    MONTH(AttDtl.Dates) AS MonthWage,
-    AttDtl.AadharNo AS AadharNo,
-    AttDtl.VendorCode AS VendorCode,
-    EM.VendorName AS VendorName,
-    EM.LabourState AS StateName,
-    LM.LocationCode AS LocationCode,
-    LM.Location AS LocationNM,
-    '' AS SiteID,
-    '' AS WorkSite,
+    AttDtl.MasterID,
+    AttDtl.AadharNo,
     AttDtl.WorkOrderNo,
-    AttDtl.WorkManSl AS WorkManSl,
-    EM.Name AS WorkManName,
+    FinalHolidayCount.HolidayCount AS HolidayCount,
+    EM.Name AS WorkmanName,
+    SUM(CASE WHEN AttDtl.Present = 'True' THEN 1 ELSE 0 END) AS DaysWorked,
+    SUM(CASE WHEN AttDtl.Present = 'False' THEN 1 ELSE 0 END) AS DaysAbsent,
+    EM.VendorName,
+    EM.LabourState,
+    LM.LocationCode,
+    LM.Location AS LocationName,
     EM.WorkManCategory,
-    EM.PFNo AS PFNo,
-    EM.ESINo AS ESINo,
-    EM.UANNo AS UANNo,
-    DAY(EOMONTH('2024-10-01')) AS TotDaysInMonth,
-    (DATEDIFF(WEEK, DATEADD(MONTH, DATEDIFF(MONTH, 0, '2024-10-01'), 0), DATEADD(MONTH, DATEDIFF(MONTH, 0, '2024-10-01') + 1, 0))) AS TotSunDays,
-    CASE 
-        WHEN (
-            SELECT SUM(CAST(present AS INT)) 
-            FROM App_AttendanceDetails 
-            WHERE dates IN (
-                SELECT DATEADD(DAY, -1, ah.Hdate) 
-                FROM App_HolidayMaster ah 
-                WHERE MONTH(ah.Hdate) = 10 
-                  AND YEAR(ah.Hdate) = 2024 
-                  AND Location = 'TSBSL ANGUL (TOWNSHIP)' 
-                  AND AadharNo = AttDtl.AadharNo 
-                  AND WorkOrderNo = AttDtl.WorkOrderNo
-            )
-        ) >= 1 
-        OR (
-            SELECT SUM(CAST(present AS INT)) 
-            FROM App_AttendanceDetails 
-            WHERE dates IN (
-                SELECT DATEADD(DAY, 1, ah.Hdate) 
-                FROM App_HolidayMaster ah 
-                WHERE MONTH(ah.Hdate) = 10 
-                  AND YEAR(ah.Hdate) = 2024 
-                  AND Location = 'TSBSL ANGUL (TOWNSHIP)' 
-                  AND AadharNo = AttDtl.AadharNo 
-                  AND WorkOrderNo = AttDtl.WorkOrderNo
-            )
-        ) >= 1 
-        THEN (
-            SELECT COUNT(DISTINCT ch.Hdate) 
-            FROM App_HolidayMaster ch 
-            WHERE MONTH(ch.Hdate) = 10 
-              AND YEAR(ch.Hdate) = 2024 
-              AND ch.Location = 'TSBSL ANGUL (TOWNSHIP)'
-        )
-        ELSE 0 
-    END AS holiday,
-    ISNULL(
-        (SELECT COUNT(ah.Hdate) 
-         FROM App_HolidayMaster ah 
-         WHERE MONTH(ah.Hdate) = 10 
-           AND Location = 'TSBSL ANGUL (TOWNSHIP)' 
-           AND YEAR(ah.Hdate) = 2024), 
-        0
-    ) AS TotHoliDays,
-    (DAY(EOMONTH('2024-10-01')) 
-      - (DATEDIFF(WEEK, DATEADD(MONTH, DATEDIFF(MONTH, 0, '2024-10-01'), 0), DATEADD(MONTH, DATEDIFF(MONTH, 0, '2024-10-01') + 1, 0))) 
-      - ISNULL(
-          (SELECT COUNT(ah.Hdate) 
-           FROM App_HolidayMaster ah 
-           WHERE MONTH(ah.Hdate) = 10 
-             AND Location = 'TSBSL ANGUL (TOWNSHIP)' 
-             AND YEAR(ah.Hdate) = 2024), 
-          0
-      )) AS TotWorkingDays,
-    SUM(CASE WHEN AttDtl.EngagementType = 'ManPowerSupply' AND AttDtl.Present = 'True' THEN 
-             CASE WHEN AttDtl.DayDef = 'HF' THEN 0.5 ELSE 1.0 END ELSE 0.0 END) AS NoOfDaysWorkedMP,
-    SUM(CASE WHEN AttDtl.EngagementType = 'ItemRate' AND AttDtl.Present = 'True' THEN 1.0 ELSE 0.0 END) AS NoOfDaysWorkedRate,
-    SUM(CASE WHEN AttDtl.EngagementType = 'ManPowerSupply' AND AttDtl.Present = 'False' THEN 1.0 ELSE 0.0 END) AS NoOfDaysAbsMP
+    EM.PFNo,
+    EM.ESINo,
+    EM.UANNo
 FROM 
-    App_AttendanceDetails AS AttDtl
+    App_AttendanceDetails AttDtl
 LEFT JOIN 
-    App_EmployeeMaster AS EM ON AttDtl.MasterID = EM.ID
+    App_EmployeeMaster EM 
+    ON AttDtl.MasterID = EM.ID
 LEFT JOIN 
-    App_LocationMaster AS LM ON LM.LocationCode = AttDtl.LocationCode
+    App_LocationMaster LM 
+    ON AttDtl.LocationCode = LM.LocationCode
+LEFT JOIN 
+    FinalHolidayCount 
+    ON AttDtl.AadharNo = FinalHolidayCount.AadharNo 
+    AND AttDtl.WorkOrderNo = FinalHolidayCount.WorkOrderNo
 WHERE 
-    YEAR(AttDtl.Dates) = 2024 
+    YEAR(AttDtl.Dates) = 2024
     AND MONTH(AttDtl.Dates) = 10
+    AND AttDtl.LocationCode = 'L_49'
     AND AttDtl.VendorCode = '28291'
-    AND AttDtl.WorkOrderNo IN ('4700022167', '4700024647', '4700026023', '4700025409', 
-                               '4700025624', '4700025993', '4700024600', '4700025372', 
-                               '4700023503', '4700024976', '4700025490', '4700023120', 
-                               '4700024542', '4700023764', '4700024579', '4700024583', 
-                               '4700025727')
+    AND AttDtl.WorkOrderNo IN (
+        '4700022167','4700024647','4700026023','4700025409',
+        '4700025624','4700025993','4700024600','4700025372',
+        '4700023503','4700024976','4700025490','4700023120',
+        '4700024542','4700023764','4700024579','4700024583',
+        '4700025727'
+    )
 GROUP BY 
     AttDtl.MasterID, 
-    YEAR(AttDtl.Dates), 
-    MONTH(AttDtl.Dates), 
     AttDtl.AadharNo, 
-    AttDtl.VendorCode,  
-    EM.VendorName, 
-    EM.LabourState, 
-    LM.LocationCode,
-    LM.Location, 
     AttDtl.WorkOrderNo, 
-    AttDtl.WorkManSl, 
-    EM.Name, 
-    EM.WorkManCategory, 
-    EM.PFNo, 
-    EM.ESINo, 
-    EM.UANNo, 
-    EM.EMP_PF_EXEMPTED, 
-    EM.EMP_ESI_EXEMPTED
+    FinalHolidayCount.HolidayCount, 
+    EM.Name,
+    EM.VendorName,
+    EM.LabourState,
+    LM.LocationCode,
+    LM.Location,
+    EM.WorkManCategory,
+    EM.PFNo,
+    EM.ESINo,
+    EM.UANNo
 ORDER BY 
     EM.Name;
