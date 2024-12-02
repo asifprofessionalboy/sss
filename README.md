@@ -1,4 +1,4 @@
-
+hi
 
 Select   EM.EMP_PF_EXEMPTED as EMP_PF_EXEMPTED ,EM.EMP_ESI_EXEMPTED as EMP_ESI_EXEMPTED,AttDtl.MasterID as MasterID,
 sum(AttDtl.OT_hrs) as OT_hrs, Year(AttDtl.Dates) as YearWage, Month(AttDtl.Dates) as MonthWage,
