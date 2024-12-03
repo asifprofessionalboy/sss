@@ -1,26 +1,46 @@
-
---case when
-
-
---(select sum(CAST(present AS INT)) from App_AttendanceDetails where dates in 
-
---(select ah.Hdate - 1 from App_HolidayMaster ah 
---where DATEPART(month, ah.Hdate) = '10'and DATEPART(year, ah.Hdate) = '2024'and  Location = 'TSBSL ANGUL (TOWNSHIP)' and AadharNo = AttDtl.AadharNo 
---and WorkOrderNo = AttDtl.WorkOrderNo))>= 1 
-
---or
-
---(select sum(CAST(present AS INT)) from App_AttendanceDetails where dates in 
-
-
-
---(select ah.Hdate + 1 from App_HolidayMaster ah where DATEPART(month, ah.Hdate) = '10'and DATEPART(year, ah.Hdate) = '2024'
---and Location = 'TSBSL ANGUL (TOWNSHIP)' and AadharNo = AttDtl.AadharNo and WorkOrderNo = AttDtl.WorkOrderNo) )>= 1 
-
---then 
-
-
---(select count(distinct ch.Hdate) from App_HolidayMaster ch where  DATEPART(month, ch.Hdate) = '10'
---and DATEPART(year, ch.Hdate) = '2024'and ch.Location = 'TSBSL ANGUL (TOWNSHIP)' ) 
-
---else 0 end holiday,
+CASE 
+    WHEN AttDtl.WorkOrderNo = (
+        SELECT TOP 1 WorkOrderNo
+        FROM App_AttendanceDetails subAtt
+        WHERE subAtt.AadharNo = AttDtl.AadharNo
+          AND YEAR(subAtt.Dates) = YEAR(AttDtl.Dates)
+          AND MONTH(subAtt.Dates) = MONTH(AttDtl.Dates)
+        ORDER BY subAtt.WorkOrderNo
+    )
+    THEN 
+        CASE 
+            WHEN (
+                SELECT SUM(CAST(present AS INT)) 
+                FROM App_AttendanceDetails 
+                WHERE dates IN (
+                    SELECT DATEADD(DAY, -1, ah.Hdate) 
+                    FROM App_HolidayMaster ah 
+                    WHERE DATEPART(month, ah.Hdate) = 10 
+                      AND DATEPART(year, ah.Hdate) = 2024 
+                      AND Location = 'TSBSL ANGUL (TOWNSHIP)' 
+                      AND AadharNo = AttDtl.AadharNo
+                )
+            ) >= 1 
+            OR (
+                SELECT SUM(CAST(present AS INT)) 
+                FROM App_AttendanceDetails 
+                WHERE dates IN (
+                    SELECT DATEADD(DAY, 1, ah.Hdate) 
+                    FROM App_HolidayMaster ah 
+                    WHERE DATEPART(month, ah.Hdate) = 10 
+                      AND DATEPART(year, ah.Hdate) = 2024 
+                      AND Location = 'TSBSL ANGUL (TOWNSHIP)' 
+                      AND AadharNo = AttDtl.AadharNo
+                )
+            ) >= 1 
+            THEN (
+                SELECT COUNT(DISTINCT ch.Hdate) 
+                FROM App_HolidayMaster ch 
+                WHERE DATEPART(month, ch.Hdate) = 10 
+                  AND DATEPART(year, ch.Hdate) = 2024 
+                  AND ch.Location = 'TSBSL ANGUL (TOWNSHIP)'
+            )
+            ELSE 0 
+        END
+    ELSE 0
+END AS Holiday
