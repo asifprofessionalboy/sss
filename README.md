@@ -1,46 +1,5 @@
-CASE 
-    WHEN AttDtl.WorkOrderNo = (
-        SELECT TOP 1 WorkOrderNo
-        FROM App_AttendanceDetails subAtt
-        WHERE subAtt.AadharNo = AttDtl.AadharNo
-          AND YEAR(subAtt.Dates) = YEAR(AttDtl.Dates)
-          AND MONTH(subAtt.Dates) = MONTH(AttDtl.Dates)
-        ORDER BY subAtt.WorkOrderNo
-    )
-    THEN 
-        CASE 
-            WHEN (
-                SELECT SUM(CAST(present AS INT)) 
-                FROM App_AttendanceDetails 
-                WHERE dates IN (
-                    SELECT DATEADD(DAY, -1, ah.Hdate) 
-                    FROM App_HolidayMaster ah 
-                    WHERE DATEPART(month, ah.Hdate) = 10 
-                      AND DATEPART(year, ah.Hdate) = 2024 
-                      AND Location = 'TSBSL ANGUL (TOWNSHIP)' 
-                      AND AadharNo = AttDtl.AadharNo
-                )
-            ) >= 1 
-            OR (
-                SELECT SUM(CAST(present AS INT)) 
-                FROM App_AttendanceDetails 
-                WHERE dates IN (
-                    SELECT DATEADD(DAY, 1, ah.Hdate) 
-                    FROM App_HolidayMaster ah 
-                    WHERE DATEPART(month, ah.Hdate) = 10 
-                      AND DATEPART(year, ah.Hdate) = 2024 
-                      AND Location = 'TSBSL ANGUL (TOWNSHIP)' 
-                      AND AadharNo = AttDtl.AadharNo
-                )
-            ) >= 1 
-            THEN (
-                SELECT COUNT(DISTINCT ch.Hdate) 
-                FROM App_HolidayMaster ch 
-                WHERE DATEPART(month, ch.Hdate) = 10 
-                  AND DATEPART(year, ch.Hdate) = 2024 
-                  AND ch.Location = 'TSBSL ANGUL (TOWNSHIP)'
-            )
-            ELSE 0 
-        END
-    ELSE 0
-END AS Holiday
+ Select AttDtl.VendorCode, EmpMst.v_name,  DATEPART(month, AttDtl.Dates) as Month, DATEPART(year, AttDtl.Dates) as Year, AttDtl.WorkOrderNo,  
+ AttDtl.WorkManSl as WorkManSLNo, AttDtl.WorkManName WorkManName, AttDtl.Dates,  AttDtl.WorkManCategory as Category,  
+ (case when
+     (select(Count(ah.Hdate)) from App_HolidayMaster ah where DATEPART(year, ah.Hdate)= '2024' and  DATEPART(month, ah.Hdate) = '10' 
+     and Location = 'KTP' group by ah.Hdate) is null then 0 else
