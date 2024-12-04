@@ -1,71 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Beautiful Card with Buttons</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f9;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    .btn {
-      border-radius: 50%;
-      padding: 10px 15px;
-      font-size: 18px;
-      color: white;
-      background-color: #007bff;
-      border: none;
-      cursor: pointer;
-    }
-
-    .card {
-      display: none;
-      background-color: white;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      border-radius: 10px;
-      padding: 20px;
-      width: 300px;
-      text-align: center;
-    }
-
-    .card.show {
-      display: block;
-    }
-
-    .card button {
-      background-color: transparent;
-      border: none;
-      cursor: pointer;
-      margin: 10px 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .card button svg {
-      margin-right: 8px;
-    }
-
-    .card .badge {
-      background-color: #28a745;
-      color: white;
-      font-size: 12px;
-      padding: 5px 10px;
-      border-radius: 12px;
-      margin-left: 10px;
-    }
-  </style>
-</head>
-<body>
-  <button class="btn" onclick="toggleCard()">Open</button>
+<button class="btn" onclick="toggleCard()">Open</button>
 
   <div class="card" id="card">
     <div>
@@ -108,3 +41,16 @@
   </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+ChatGPT can 
